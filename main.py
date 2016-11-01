@@ -63,8 +63,9 @@ button_c_pressed = False
 button_d_pressed = False
 
 # alarm
-alarm_speed = 1
-alarm_time = 0
+alarm_delay = 1
+alarm_time = time.time()
+alarm_on = False
 
 # LEDs
 led_green_on = False
@@ -147,24 +148,21 @@ while True:
         blink = True
         print('Settings')
 
-        # button to "save" alarm speed
+        # button to "save" alarm delay
         if button_c_pressed:
             state = State.off
             continue
-        # button to change alarm speed
+        # button to change alarm delay
         elif button_d_pressed:
-            # swap between 1, 2 and 3 speed
-            alarm_speed = alarm_speed + 1 if alarm_speed < 3 else 1
+            # swap between 1, 2 and 3 delay
+            alarm_delay = alarm_delay + 1 if alarm_delay < 3 else 1
 
     # blink timer
-    alarm_on = False
-    if alarm_time > alarm_speed * 1000:
-        alarm_time = 0
-        alarm_on = True
-    else:
-        alarm_time += 1
+    if time.time() - alarm_time >= alarm_delay:
+        alarm_time = time.time()
+        alarm_on = not alarm_on
 
-    print("SNELHEIDIIDIDIDIDI DIDIDIDIDIIDIDIDIDI", alarm_speed)
+    print("SNELHEIDIIDIDIDIDI DIDIDIDIDIIDIDIDIDI", alarm_delay)
     # LEDs
     GPIO.output(GREEN_LED, led_green_on)
     GPIO.output(YELLOW_LED, led_yellow_on)
