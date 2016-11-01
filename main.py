@@ -27,7 +27,9 @@ def ask_pin_code():
     pin = input('Pin please: ')
     return pin == '1337'
 
-# Init
+###############
+##    Init   ##
+###############
 GPIO.setmode(GPIO.BCM)
 
 GPIO.setup(RED_LED, GPIO.OUT)
@@ -139,7 +141,7 @@ while True:
                 continue
 
     # Settings
-    elif state == State.Settings:
+    elif state == State.settings:
         led_green_on = True
         led_red_on = True
         blink = True
@@ -156,10 +158,13 @@ while True:
 
     # blink timer
     alarm_on = False
-    if alarm_time > alarm_speed * 100:
+    if alarm_time > alarm_speed * 1000:
         alarm_time = 0
         alarm_on = True
+    else:
+        alarm_time += 1
 
+    print("SNELHEIDIIDIDIDIDI DIDIDIDIDIIDIDIDIDI", alarm_speed)
     # LEDs
     GPIO.output(GREEN_LED, led_green_on)
     GPIO.output(YELLOW_LED, led_yellow_on)
