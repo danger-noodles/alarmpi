@@ -9,11 +9,10 @@ import time
 ###############
 ## Constands ##
 ###############
-
 # LEDs
-RED_LED = 25
-YELLOW_LED = 8
-GREEN_LED = 7
+LED_RED = 25
+LED_YELLOW = 8
+LED_GREEN = 7
 
 # Buttons
 BUTTON_A = 21
@@ -21,13 +20,16 @@ BUTTON_B = 20
 BUTTON_C = 16
 BUTTON_D = 12
 
+# PinCode
+PIN_CODE = 1337
+
 
 ###############
 ## Functions ##
 ###############
 def ask_pin_code():
     pin = input('Pin please: ')
-    return pin == '1337'
+    return int(pin) == PIN_CODE
 
 
 ###############
@@ -35,18 +37,18 @@ def ask_pin_code():
 ###############
 GPIO.setmode(GPIO.BCM)
 
-GPIO.setup(RED_LED, GPIO.OUT)
-GPIO.setup(YELLOW_LED, GPIO.OUT)
-GPIO.setup(GREEN_LED, GPIO.OUT)
+GPIO.setup(LED_RED, GPIO.OUT)
+GPIO.setup(LED_YELLOW, GPIO.OUT)
+GPIO.setup(LED_GREEN, GPIO.OUT)
 
-GPIO.setup(BUTTON_A, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON_C, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON_D, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+GPIO.setup(BUTTON_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+GPIO.setup(BUTTON_C, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+GPIO.setup(BUTTON_D, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
-GPIO.output(RED_LED, False)
-GPIO.output(YELLOW_LED, False)
-GPIO.output(GREEN_LED, False)
+GPIO.output(LED_RED, False)
+GPIO.output(LED_YELLOW, False)
+GPIO.output(LED_GREEN, False)
 
 
 ###############
@@ -74,7 +76,6 @@ alarm_on = False
 led_green_on = False
 led_yellow_on = False
 led_red_on = False
-blink = False
 
 
 ###############
@@ -84,11 +85,11 @@ while True:
     led_red_on = False
     led_green_on = False
     led_yellow_on = False
-    blink = False
 
     # Button input
     if GPIO.input(BUTTON_A):
         if not button_a_pressed:
+             print("Button A", button_a_pressed)
             # Trigger alarm
             if state == State.standby:
                 state = State.triggered
@@ -100,6 +101,7 @@ while True:
     # B
     if GPIO.input(BUTTON_B):
         if not button_b_pressed:
+            print("Button B", button_b_pressed)
             if ask_pin_code():
                 # Set alarm on standby
                 if state == State.off:
@@ -118,6 +120,7 @@ while True:
     # C
     if GPIO.input(BUTTON_C):
         if not button_c_pressed:
+            print("Button C", button_c_pressed)
             # Go to settings
             if state == State.off:
                 state = State.settings
@@ -132,14 +135,15 @@ while True:
     # D
     if GPIO.input(BUTTON_D):
         if not button_d_pressed:
+            print("Button D", button_d_pressed)
             # Change blink speed
             if state == State.settings:
                 # swap between 1, 2 and 3 delay
                 alarm_delay = alarm_delay + 1 if alarm_delay < 3 else 1
+                print("Alarm delay:", alarm_delay)
         button_d_pressed = True
     else:
         button_d_pressed = False
-
 
     # Set variables based on states
     # NOTE: Python has no switch
@@ -156,14 +160,12 @@ while True:
     # Triggered
     elif state == State.triggered:
         led_red_on = True
-        blink = True
         print('Triggered')
 
     # Settings
     elif state == State.settings:
         led_green_on = True
         led_red_on = True
-        blink = True
         print('Settings')
 
 
@@ -173,20 +175,6 @@ while True:
         alarm_on = not alarm_on
 
     # LEDs
-    GPIO.output(GREEN_LED, led_green_on)
-    GPIO.output(YELLOW_LED, led_yellow_on)
-    GPIO.output(RED_LED, led_red_on and alarm_on)
-
-    # Debug prints
-    print("Button A", button_a_pressed)
-    print("Button B", button_b_pressed)
-    print("Button C", button_c_pressed)
-    print("Button D", button_d_pressed)
-
-    print("State", state)
-
-    print("SNELHEIDIIDIDIDIDI DIDIDIDIDIIDIDIDIDI", alarm_delay)
-
-    print("Green", led_green_on)
-    print("Yellow", led_yellow_on)
-    print("Red", led_red_on)
+    GPIO.output(LED_GREEN, led_green_on)
+    GPIO.output(LED_YELLOW, led_yellow_on)
+    GPIO.output(LED_RED, led_red_on and alarm_on)
