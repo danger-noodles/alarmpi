@@ -91,11 +91,14 @@ led_green_on = False
 led_yellow_on = False
 led_red_on = False
 
+# running
+running = True
+
 
 ###############
 ## Main Loop ##
 ###############
-while True:
+while running:
     led_red_on = False
     led_green_on = False
     led_yellow_on = False
@@ -161,6 +164,9 @@ while True:
                 # swap between 1, 2 and 3 delay
                 alarm_delay = alarm_delay + 1 if alarm_delay < 3 else 1
                 print("Alarm delay:", alarm_delay)
+            # Turn off program (can't turn on again)
+            elif state == State.off:
+                running = False
         button_d_pressed = True
     else:
         button_d_pressed = False
