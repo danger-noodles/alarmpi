@@ -5,6 +5,7 @@ from enum import Enum
 import RPi.GPIO as GPIO
 import time
 
+
 ###############
 ## Constands ##
 ###############
@@ -20,12 +21,14 @@ BUTTON_B = 20
 BUTTON_C = 16
 BUTTON_D = 12
 
+
 ###############
 ## Functions ##
 ###############
 def ask_pin_code():
     pin = input('Pin please: ')
     return pin == '1337'
+
 
 ###############
 ##    Init   ##
@@ -73,6 +76,7 @@ led_yellow_on = False
 led_red_on = False
 blink = False
 
+
 ###############
 ## Main Loop ##
 ###############
@@ -83,63 +87,77 @@ while True:
     blink = False
 
     # Button input
-    button_a_pressed = GPIO.input(BUTTON_A)
-    button_b_pressed = GPIO.input(BUTTON_B)
-    button_c_pressed = GPIO.input(BUTTON_C)
-    button_d_pressed = GPIO.input(BUTTON_D)
+    if GPIO.input(BUTTON_A):
+        if not button_a_pressed:
+            # Trigger alarm
+            if state == State.standby:
+                state = State.triggered
 
-    print("Button A", button_a_pressed)
-    print("Button B", button_b_pressed)
-    print("Button C", button_c_pressed)
-    print("Button D", button_d_pressed)
+        button_a_pressed = True
+    else:
+        button_a_pressed = False
 
-    print("State", state)
+    # B
+    if GPIO.input(BUTTON_B):
+        if not button_b_pressed:
+            if ask_pin_code():
+                # Set alarm on standby
+                if state == State.off:
+                    state = State.standby
+                # Set alarm on Off
+                elif state == State.standby:
+                    state = State.off
+                # Set alarm to standby from trigger
+                elif state == State.triggered:
+                    state = State.standby
 
+        button_b_pressed = True
+    else:
+        button_b_pressed = False
+
+    # C
+    if GPIO.input(BUTTON_C):
+        if not button_c_pressed:
+            # Go to settings
+            if state == State.off:
+                state = State.settings
+            # Exit settings
+            elif state == State.settings:
+                state = State.off
+
+        button_c_pressed = True
+    else:
+        button_c_pressed = False
+
+    # D
+    if GPIO.input(BUTTON_D):
+        if not button_d_pressed:
+            # Change blink speed
+            if state == State.settings:
+                # swap between 1, 2 and 3 delay
+                alarm_delay = alarm_delay + 1 if alarm_delay < 3 else 1
+        button_d_pressed = True
+    else:
+        button_d_pressed = False
+
+
+    # Set variables based on states
+    # NOTE: Python has no switch
     # Off
     if state == State.off:
         led_green_on = True
         print('Off')
-
-        # Button to set on standby
-        if button_b_pressed:
-            # set on standby if code is correct
-            if ask_pin_code():
-                state = State.standby
-                continue
-
-        elif button_c_pressed:
-            state = State.settings
-            continue
 
     # Standby
     elif state == State.standby:
         led_yellow_on = True
         print('Standby')
 
-        # Trigger button
-        if button_a_pressed:
-            print('A pressed while Standby')
-            state = State.triggered
-            continue
-
-        # Button to turn off
-        elif button_b_pressed:
-            print('B pressed while Standby')
-            # turn off if code is correct
-            if ask_pin_code():
-                state = State.off
-                continue
-
     # Triggered
     elif state == State.triggered:
         led_red_on = True
         blink = True
         print('Triggered')
-
-        if button_b_pressed:
-            if ask_pin_code():
-                state = State.standby
-                continue
 
     # Settings
     elif state == State.settings:
@@ -148,25 +166,27 @@ while True:
         blink = True
         print('Settings')
 
-        # button to "save" alarm delay
-        if button_c_pressed:
-            state = State.off
-            continue
-        # button to change alarm delay
-        elif button_d_pressed:
-            # swap between 1, 2 and 3 delay
-            alarm_delay = alarm_delay + 1 if alarm_delay < 3 else 1
 
     # blink timer
     if time.time() - alarm_time >= alarm_delay:
         alarm_time = time.time()
         alarm_on = not alarm_on
 
-    print("SNELHEIDIIDIDIDIDI DIDIDIDIDIIDIDIDIDI", alarm_delay)
     # LEDs
     GPIO.output(GREEN_LED, led_green_on)
     GPIO.output(YELLOW_LED, led_yellow_on)
     GPIO.output(RED_LED, led_red_on and alarm_on)
+
+    # Debug prints
+    print("Button A", button_a_pressed)
+    print("Button B", button_b_pressed)
+    print("Button C", button_c_pressed)
+    print("Button D", button_d_pressed)
+
+    print("State", state)
+
+    print("SNELHEIDIIDIDIDIDI DIDIDIDIDIIDIDIDIDI", alarm_delay)
+
     print("Green", led_green_on)
     print("Yellow", led_yellow_on)
     print("Red", led_red_on)
