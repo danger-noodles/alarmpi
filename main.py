@@ -20,6 +20,9 @@ BUTTON_B = 20
 BUTTON_C = 16
 BUTTON_D = 12
 
+# Speaker
+SPEAKER_PIN = 24
+
 # PinCode
 PIN_CODE = 1337
 
@@ -36,16 +39,23 @@ def ask_pin_code():
 ##    Init   ##
 ###############
 GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
+# LEDS
 GPIO.setup(LED_RED, GPIO.OUT)
 GPIO.setup(LED_YELLOW, GPIO.OUT)
 GPIO.setup(LED_GREEN, GPIO.OUT)
 
+# BUTTONS
 GPIO.setup(BUTTON_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(BUTTON_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(BUTTON_C, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(BUTTON_D, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
+# Speaker
+GPIO.setup(SPEAKER_PIN, GPIO.OUT)
+
+# Turn lights of by default
 GPIO.output(LED_RED, False)
 GPIO.output(LED_YELLOW, False)
 GPIO.output(LED_GREEN, False)
@@ -72,6 +82,10 @@ alarm_delay = 1
 alarm_time = time.time()
 alarm_on = False
 
+# Speaker
+speaker_time = 0
+speaker_up = True
+
 # LEDs
 led_green_on = False
 led_yellow_on = False
@@ -89,10 +103,11 @@ while True:
     # Button input
     if GPIO.input(BUTTON_A):
         if not button_a_pressed:
-             print("Button A", button_a_pressed)
+            print("Button A", button_a_pressed)
             # Trigger alarm
             if state == State.standby:
                 state = State.triggered
+                print('Triggered')
 
         button_a_pressed = True
     else:
@@ -106,12 +121,15 @@ while True:
                 # Set alarm on standby
                 if state == State.off:
                     state = State.standby
+                    print('Standby')
                 # Set alarm on Off
                 elif state == State.standby:
                     state = State.off
+                    print('Off')
                 # Set alarm to standby from trigger
                 elif state == State.triggered:
                     state = State.standby
+                    print('Standby')
 
         button_b_pressed = True
     else:
@@ -124,9 +142,11 @@ while True:
             # Go to settings
             if state == State.off:
                 state = State.settings
+                print('Setting')
             # Exit settings
             elif state == State.settings:
                 state = State.off
+                print('Off')
 
         button_c_pressed = True
     else:
@@ -150,23 +170,19 @@ while True:
     # Off
     if state == State.off:
         led_green_on = True
-        print('Off')
 
     # Standby
     elif state == State.standby:
         led_yellow_on = True
-        print('Standby')
 
     # Triggered
     elif state == State.triggered:
         led_red_on = True
-        print('Triggered')
 
     # Settings
     elif state == State.settings:
         led_green_on = True
         led_red_on = True
-        print('Settings')
 
 
     # blink timer
@@ -174,7 +190,26 @@ while True:
         alarm_time = time.time()
         alarm_on = not alarm_on
 
+    # Speaker timer
+    if speaker_time > 1000:
+        speaker_time = 10
+    elif led_red_on and alarm_on:
+        GPIO.output(SPEAKER_PIN, True)
+        time.sleep(1.0 / 2000 / 2)
+        GPIO.output(SPEAKER_PIN, False)
+        time.sleep(1.0 / 2000 / 2)
+        speaker_time += 1
+    else:
+        speaker_time += 1
+
     # LEDs
     GPIO.output(LED_GREEN, led_green_on)
     GPIO.output(LED_YELLOW, led_yellow_on)
     GPIO.output(LED_RED, led_red_on and alarm_on)
+
+
+# Turn every ting off when program closes
+GPIO.output(LED_GREEN, False)
+GPIO.output(LED_YELLOW, False)
+GPIO.output(LED_RED, False)
+GPIO.output(SPEAKER_PIN, False)
