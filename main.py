@@ -27,6 +27,34 @@ SPEAKER_PIN = 24
 # PinCode
 PIN_CODE = 1337
 
+# DIGIT DISPLAY
+CHARACTERS = {
+    ' ': (0,0,0,0,0,0,0,0),
+    '0': (1,1,0,1,0,1,1,1),
+    '1': (0,0,0,1,0,1,0,0),
+    '2': (1,1,0,0,1,1,0,1),
+    '3': (0,1,0,1,1,1,0,1),
+    '4': (0,0,0,1,1,1,1,0),
+    '5': (0,1,0,1,1,0,1,1),
+    '6': (1,1,0,1,1,0,1,1),
+    '7': (0,0,0,1,0,1,0,1),
+    '8': (1,1,0,1,1,1,1,1),
+    '9': (0,1,0,1,1,1,1,1),
+    'B': (1,1,0,1,1,0,1,0),
+    'O': (1,1,0,1,0,1,1,1),
+    'E': (1,1,0,0,1,0,1,1),
+    'F': (1,0,0,0,1,0,1,1),
+    'S': (0,1,0,1,1,0,1,1),
+    'A': (1,0,0,1,1,1,1,1),
+    '-': (1,1,1,1,1,1,1,1)
+}
+
+
+# GPIO ports for the 7seg pins
+SEGMENTS = (26, 19, 13, 6, 5, 9, 27, 17)
+# GPIO ports for the digit 0-3 pins
+DIGITS = (4, 22, 10, 11)
+
 
 ###############
 ## Functions ##
@@ -34,6 +62,15 @@ PIN_CODE = 1337
 def ask_pin_code():
     pin = input('Pin please: ')
     return int(pin) == PIN_CODE
+
+
+def display_seg(display_string):
+    for digit in range(4):
+        GPIO.output(SEGMENTS, (CHARACTERS[display_string[digit]]))
+        GPIO.output(DIGITS[digit], 0)
+        time.sleep(0.001)
+        GPIO.output(DIGITS[digit], 1)
+
 
 def blink_alarm():
     print('Alarm Thread')
@@ -52,6 +89,11 @@ def blink_alarm():
             alarm_time = time.time()
             alarm_on = not alarm_on
 
+        if alarm_on:
+            display_seg('BOEF')
+        else:
+            display_seg('    ')
+
         # NOTE: This does not work 100%
         if alarm_on:
             # Make speaker bleep
@@ -64,6 +106,8 @@ def blink_alarm():
         GPIO.output(LED_RED, alarm_on)
 
     GPIO.output(LED_RED, False) # Turn Light off when thread ends
+    display_seg('----')
+    print('Alarm Thread killed')
 
 def main():
     # globals
@@ -186,7 +230,6 @@ def main():
 
 
         if g_alarm_on and not alarm_thread.isAlive():
-            print('Dit > hallo')
             alarm_thread = threading.Thread(target = blink_alarm)
             alarm_thread.daemon = True # Tread dies when program ends
             alarm_thread.start()
@@ -212,13 +255,20 @@ GPIO.setup(BUTTON_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(BUTTON_C, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(BUTTON_D, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
-# Speaker
+# SPEAKER
 GPIO.setup(SPEAKER_PIN, GPIO.OUT)
 
 # Turn lights of by default
 GPIO.output(LED_RED, False)
 GPIO.output(LED_YELLOW, False)
 GPIO.output(LED_GREEN, False)
+
+# DIGIT DISPLAY
+# 7seg_segment_pins (11,7,4,2,1,10,5,3)
+GPIO.setup(SEGMENTS, GPIO.OUT, initial = 0)
+
+# 7seg_digit_pins (12,9,8,6) digits 0-3 respectively
+GPIO.setup(DIGITS, GPIO.OUT, initial = 1)
 
 
 ###############
@@ -233,7 +283,6 @@ g_alarm_delay = 1
 ## Main Loop ##
 ###############
 main()
-
 
 # Turn every ting off when program closes
 GPIO.cleanup()
