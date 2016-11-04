@@ -1,0 +1,10 @@
+[Unit]
+Description=Alarmpi script
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/alarmpi
+
+[Install]
+WantedBy=multi-user.target
