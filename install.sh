@@ -12,4 +12,7 @@ echo 'Installing alarmpi script to $PATH...'
 install -Dm755 /tmp/alarmpi/main.py /usr/bin/alarmpi
 
 echo 'Installing alarmpi systemd service file...'
-install -Dm755 /tmp/alarmpi/main.service /lib/systemd/system/alarmpi.service
+install -Dm644 /tmp/alarmpi/main.service /lib/systemd/system/alarmpi.service
+
+echo 'Enabling alarmpi systemd service file...'
+systemctl enable alarmpi.service
