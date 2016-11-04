@@ -25,7 +25,7 @@ BUTTON_D = 12
 SPEAKER_PIN = 24
 
 # PinCode
-PIN_CODE = 1337
+PIN_CODE = '1337'
 
 # DIGIT DISPLAY
 CHARACTERS = {
@@ -65,7 +65,7 @@ DIGITS = (4, 22, 10, 11)
 # @return Bool || If pin code is correct or not
 def ask_and_validate_pin_code():
     pin = input('Pin please: ')
-    return int(pin) == PIN_CODE
+    return pin == PIN_CODE
 
 
 # display_seg
@@ -228,7 +228,7 @@ def main():
                 # Turn off program (can't turn on again)
                 elif state == State.off:
                     running = False
-                    
+
             button_d_pressed = True
         else:
             button_d_pressed = False
